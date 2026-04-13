@@ -125,18 +125,19 @@ const miembrosFiltrados = miembros.filter(m => {
             className="w-full pl-9 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        <select
-          value={filtroEstado}
-          onChange={(e) => setFiltroEstado(e.target.value)}
-          className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="todos">Todos los estados</option>
-          <option value="activo">Activo</option>
-          <option value="vencido">Vencido</option>
-          <option value="congelado">Congelado</option>
-        </select>
+      <select
+        value={filtroEstado}
+        onChange={(e) => setFiltroEstado(e.target.value)}
+        className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+      >
+        <option value="todos">Todos los estados</option>
+        <option value="activo">Activo</option>
+        <option value="vencido">Vencido</option>
+        <option value="por_vencer">Por vencer</option>
+        <option value="congelado">Congelado</option>
+      </select>
       </div>
-
+        
       {/* Tabla de miembros */}
       <div className="bg-white rounded-lg border overflow-hidden">
         <table className="w-full">
