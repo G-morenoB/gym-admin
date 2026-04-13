@@ -26,7 +26,7 @@ export default function AdminSidebar() {
 
       {/* Logo */}
       <div className="p-6 border-b">
-        <h1 className="font-bold text-lg">Aquiles Gym</h1>
+        <h1 className="font-bold text-lg">Gym</h1>
         <p className="text-xs text-gray-500">Panel de Gestión</p>
       </div>
 
