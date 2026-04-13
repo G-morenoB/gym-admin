@@ -59,13 +59,23 @@ export default function MiembrosPage() {
     }
   }
 
-  // Filtra miembros según búsqueda y filtro de estado
-  const miembrosFiltrados = miembros.filter(m => {
-    const coincideBusqueda = m.nombre.toLowerCase().includes(busqueda.toLowerCase())
-    const coincideEstado = filtroEstado === 'todos' || m.estado === filtroEstado
-    return coincideBusqueda && coincideEstado
-  })
+// Filtra miembros según búsqueda y filtro de estado
+const miembrosFiltrados = miembros.filter(m => {
+  const coincideBusqueda = m.nombre.toLowerCase().includes(busqueda.toLowerCase())
+  
+  // Usa el estado calculado (por fecha) en lugar del estado guardado en BD
+  const estadoCalculado = calcularEstado(m)
+  
+  const coincideEstado = 
+    filtroEstado === 'todos' ||
+    filtroEstado === estadoCalculado ||
+    // Si filtra por 'activo' incluye también los 'por_vencer'
+    (filtroEstado === 'activo' && estadoCalculado === 'por_vencer') ||
+    // Si filtra por 'congelado' usa el estado de la BD directamente
+    (filtroEstado === 'congelado' && m.estado === 'congelado')
 
+  return coincideBusqueda && coincideEstado
+})
   // Calcula el estado visual basado en la fecha de vencimiento
   function calcularEstado(miembro: Miembro) {
     if (miembro.estado === 'congelado') return 'congelado'
@@ -150,7 +160,7 @@ export default function MiembrosPage() {
                 Math.ceil((fechaVence.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) <= 3
 
               return (
-                <tr key={miembro.id} className="border-b last:border-0 hover:bg-gray-50">
+                <tr key={miembro.id} className="border-b last:border-0 hover:bg-gray-50 cursor-pointer">
                   <td className="px-4 py-3 text-sm font-medium">{miembro.nombre}</td>
                   <td className="px-4 py-3 text-sm text-gray-500">{miembro.telefono}</td>
                   <td className="px-4 py-3 text-sm text-gray-600 capitalize">
@@ -169,7 +179,7 @@ export default function MiembrosPage() {
                   <td className="px-4 py-3 text-sm">
                     <button
                       onClick={() => router.push(`/admin/miembros/${miembro.id}`)}
-                      className="text-blue-600 hover:underline"
+                      className=" cursor-pointer text-blue-600 hover:underline"
                     >
                       Ver perfil
                     </button>
