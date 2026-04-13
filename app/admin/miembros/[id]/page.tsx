@@ -205,13 +205,14 @@ export default function PerfilMiembroPage() {
                     </div>
                     <div>
                       <p className="text-sm font-medium">
-                        {new Date(visita.fecha_entrada).toLocaleDateString('es-MX')}
+                        {new Date(visita.fecha_entrada).toLocaleDateString('es-MX', { timeZone: 'America/Mexico_City' })}
                       </p>
                       <p className="text-xs text-gray-500">
-                        {new Date(visita.fecha_entrada).toLocaleTimeString('es-MX', {
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
+                       {new Date(visita.fecha_entrada).toLocaleTimeString('es-MX', {
+                        timeZone: 'America/Mexico_City',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
                       </p>
                     </div>
                   </div>
@@ -239,7 +240,7 @@ export default function PerfilMiembroPage() {
             <div>
               <p className="text-xs text-gray-500">Miembro desde</p>
               <p className="text-sm font-medium">
-                {new Date(miembro.created_at).toLocaleDateString('es-MX')}
+                {new Date(miembro.created_at).toLocaleDateString('es-MX', { timeZone: 'America/Mexico_City' })}
               </p>
             </div>
           </div>
