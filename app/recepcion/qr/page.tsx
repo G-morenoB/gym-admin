@@ -164,36 +164,35 @@ export default function EntradaQRPage() {
             <h2 className="text-xl font-bold mt-2">{estiloEstado[resultado.estado].texto}</h2>
           </div>
 
-          <div className="bg-white bg-opacity-20 rounded-lg p-4 space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="opacity-80">Miembro</span>
-              <span className="font-medium">{resultado.nombre}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="opacity-80">Membresía</span>
-              <span className="font-medium capitalize">{resultado.tipo}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="opacity-80">Vence</span>
-              <span className="font-medium">
-                {resultado.fechaVencimiento
-                  ? new Date(resultado.fechaVencimiento + 'T00:00:00').toLocaleDateString('es-MX')
-                  : '—'}
-              </span>
-            </div>
-            {resultado.estado !== 'vencido' && (
-              <div className="flex justify-between">
-                <span className="opacity-80">Entrada</span>
-                <span className="font-medium">
-                  {new Date().toLocaleTimeString('es-MX', {
-                             timeZone: 'America/Mexico_City',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
-                </span>
-              </div>
-            )}
-          </div>
+<div style={{backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: '8px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '14px', color: 'white'}}>  <div className="flex justify-between">
+      <span style={{opacity: 0.8}}>Miembro</span>
+  <span className="font-medium">{resultado.nombre}</span>
+</div>
+<div style={{display: 'flex', justifyContent: 'space-between'}}>
+  <span style={{opacity: 0.8}}>Membresía</span>
+  <span className="font-medium capitalize">{resultado.tipo}</span>
+</div>
+<div style={{display: 'flex', justifyContent: 'space-between'}}>
+  <span style={{opacity: 0.8}}>Vence</span>
+  <span className="font-medium">
+    {resultado.fechaVencimiento
+      ? new Date(resultado.fechaVencimiento + 'T00:00:00').toLocaleDateString('es-MX')
+      : '—'}
+  </span>
+</div>
+{resultado.estado !== 'vencido' && (
+  <div style={{display: 'flex', justifyContent: 'space-between'}}>
+    <span style={{opacity: 0.8}}>Entrada</span>
+    <span className="font-medium">
+      {new Date().toLocaleTimeString('es-MX', {
+        timeZone: 'America/Mexico_City',
+        hour: '2-digit',
+        minute: '2-digit'
+      })}
+    </span>
+  </div>
+  )}
+</div>
 
           <div className="mt-4 space-y-2">
             {resultado.estado === 'vencido' && (
