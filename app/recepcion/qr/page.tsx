@@ -176,7 +176,9 @@ export default function EntradaQRPage() {
             <div className="flex justify-between">
               <span className="opacity-80">Vence</span>
               <span className="font-medium">
-                {new Date(resultado.fechaVencimiento + 'T00:00:00').toLocaleDateString('es-MX')}
+                {resultado.fechaVencimiento
+                  ? new Date(resultado.fechaVencimiento + 'T00:00:00').toLocaleDateString('es-MX')
+                  : '—'}
               </span>
             </div>
             {resultado.estado !== 'vencido' && (
@@ -184,7 +186,7 @@ export default function EntradaQRPage() {
                 <span className="opacity-80">Entrada</span>
                 <span className="font-medium">
                   {new Date().toLocaleTimeString('es-MX', {
-                    timeZone: 'America/Mexico_City',
+                             timeZone: 'America/Mexico_City',
                     hour: '2-digit',
                     minute: '2-digit'
                   })}

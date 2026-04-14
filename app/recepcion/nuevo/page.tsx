@@ -80,7 +80,19 @@ export default function NuevoMiembroPage() {
       fechaVencimiento.setDate(fechaVencimiento.getDate() + 7)
     } else {
       // Por visita — vence el mismo día
-      fechaVencimiento.setDate(fechaVencimiento.getDate() + 1)
+      await supabase
+      .from('visitas')
+      .insert({ miembro_id: miembro.id })
+  
+   setMiembroCreado({
+      nombre,
+      telefono,
+      qrCode: '',
+      tipo: membresia.tipo,
+      precio: membresia.precio,
+    })
+    setGuardando(false)
+    return
     }
 
     // Registra el pago inicial
@@ -138,18 +150,20 @@ export default function NuevoMiembroPage() {
           <p className="text-sm text-gray-500 mb-6">{miembroCreado.nombre} · {miembroCreado.tipo} · ${miembroCreado.precio}</p>
 
           {/* QR generado */}
-          {qrUrl && (
+          {/* QR generado — solo si no es por visita */}
+          {qrUrl && miembroCreado.tipo !== 'por_visita' && (
             <div className="flex justify-center mb-6">
               <img
                 src={qrUrl}
                 alt="Código QR del miembro"
                 className="w-48 h-48 border rounded-lg"
-              />
+             />
             </div>
           )}
 
-          <p className="text-xs text-gray-400 mb-6 font-mono break-all">{miembroCreado.qrCode}</p>
-
+            {miembroCreado.tipo !== 'por_visita' && (
+            <p className="text-xs text-gray-400 mb-6 font-mono break-all">{miembroCreado.qrCode}</p>
+          )}           
           {/* Botones */}
           <div className="space-y-3">
             <button
@@ -204,13 +218,17 @@ export default function NuevoMiembroPage() {
 
           <div>
             <label className="block text-sm font-medium mb-1">Teléfono</label>
-            <input
-              type="tel"
-              value={telefono}
-              onChange={(e) => setTelefono(e.target.value)}
-              placeholder="Ej: 5512345678"
-              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+          <input
+            type="tel"
+            value={telefono}
+            onChange={(e) => {
+              const valor = e.target.value.replace(/\D/g, '').slice(0, 10)
+              setTelefono(valor)
+            }}
+            placeholder="Ej: 5512345678"
+            maxLength={10}
+            className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
           </div>
 
           <div>
