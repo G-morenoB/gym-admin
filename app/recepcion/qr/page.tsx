@@ -195,20 +195,20 @@ export default function EntradaQRPage() {
 </div>
 
           <div className="mt-4 space-y-2">
-            {resultado.estado === 'vencido' && (
+                     {resultado.estado === 'vencido' && (
               <button
                 onClick={() => window.location.href = `/recepcion/cobros?id=${resultado.miembroId}`}
-                className="cursor-pointer w-full bg-white text-red-500 py-2 rounded-lg font-medium text-sm"
+                style={{backgroundColor: 'white', color: '#ef4444', width: '100%', padding: '8px', borderRadius: '8px', fontWeight: '500', fontSize: '14px', cursor: 'pointer', border: 'none'}}
               >
                 Registrar pago
               </button>
             )}
-            <button
-              onClick={() => { setResultado(null); setError('') }}
-              className="cursor-pointer w-full bg-white bg-opacity-20 py-2 rounded-lg text-sm"
-            >
-              Escanear otro
-            </button>
+           <button
+    onClick={() => { setResultado(null); setError('') }}
+    style={{backgroundColor: 'rgba(255,255,255,0.2)', color: 'white', width: '100%', padding: '8px', borderRadius: '8px', fontSize: '14px', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.4)'}}
+  >
+    Escanear otro
+           </button>
           </div>
         </div>
       )}
