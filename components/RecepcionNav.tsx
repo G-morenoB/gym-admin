@@ -16,10 +16,11 @@ export default function RecepcionNav() {
   const pathname = usePathname()
   const router = useRouter()
 
-  async function handleLogout() {
-    await supabase.auth.signOut()
-    router.push('/login')
-  }
+async function handleLogout() {
+  await supabase.auth.signOut()
+  // Fuerza una recarga completa para limpiar todas las cookies
+  window.location.href = '/login'
+}
 
   return (
     <header className="bg-white border-b">

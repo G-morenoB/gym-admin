@@ -8,7 +8,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 // useRouter permite redirigir al usuario a otra página
 
-import { supabase } from '@/lib/supabase'
+import { createBrowserClient } from '@supabase/ssr'
 // Importa la conexión con Supabase que creamos antes
 
 export default function LoginPage() {
@@ -27,6 +27,13 @@ export default function LoginPage() {
   // Permite redirigir al usuario después del login
   const router = useRouter()
 
+  // Crea el cliente de Supabase que sincroniza cookies con el servidor
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+
+  
   async function handleLogin(e: React.FormEvent) {
     // Evita que la página se recargue al dar clic en el botón
     e.preventDefault()

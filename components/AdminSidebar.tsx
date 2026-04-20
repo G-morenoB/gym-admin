@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { LayoutDashboard, Users, FileText, Settings, LogOut } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { createBrowserClient } from '@supabase/ssr'
 
 const menuItems = [
   { href: '/admin/dashboard',      label: 'Dashboard',      icon: LayoutDashboard },
@@ -16,10 +16,27 @@ export default function AdminSidebar() {
   const pathname = usePathname()
   const router = useRouter()
 
-  async function handleLogout() {
-    await supabase.auth.signOut()
-    router.push('/login')
+async function handleLogout() {
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+  
+  await supabase.auth.signOut()
+
+  // Elimina la cookie de Supabase manualmente
+  const cookieName = Object.keys(document.cookie.split(';').reduce((acc: any, c) => {
+    const [k, v] = c.trim().split('=')
+    acc[k] = v
+    return acc
+  }, {})).find(k => k.includes('auth'))
+
+  if (cookieName) {
+    document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`
   }
+
+  window.location.replace('/login')
+}
 
   return (
     <aside className="w-60 bg-white border-r flex flex-col">

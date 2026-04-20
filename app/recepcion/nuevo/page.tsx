@@ -19,6 +19,7 @@ type MiembroCreado = {
 }
 
 export default function NuevoMiembroPage() {
+  const [metodo, setMetodo] = useState('efectivo')
   const [membresias, setMembresias] = useState<Membresia[]>([])
   const [nombre, setNombre] = useState('')
   const [telefono, setTelefono] = useState('')
@@ -102,7 +103,7 @@ export default function NuevoMiembroPage() {
         miembro_id: miembro.id,
         membresia_id: membresiaId,
         monto: membresia.precio,
-        metodo: 'efectivo',
+        metodo: metodo,
         fecha_inicio: fechaInicio.toISOString().split('T')[0],
         fecha_vencimiento: fechaVencimiento.toISOString().split('T')[0],
       })
@@ -245,19 +246,41 @@ export default function NuevoMiembroPage() {
               ))}
             </select>
           </div>
-
+  <label className="block text-sm font-medium mb-1">Método de pago</label>
+  <select
+    value={metodo}
+    onChange={(e) => setMetodo(e.target.value)}
+    className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+  >
+    <option value="efectivo">Efectivo</option>
+    <option value="transferencia">Transferencia</option>
+    <option value="tarjeta">Tarjeta</option>
+  </select>
           {error && (
             <p className="text-red-500 text-sm">{error}</p>
           )}
+{membresiaId && (
+  <div className="bg-gray-50 rounded-lg px-4 py-3 text-sm">
+    <div className="flex justify-between">
+      <span className="text-gray-500">Total a cobrar</span>
+      <span className="font-bold text-lg">
+        ${membresias.find(m => m.id === membresiaId)?.precio || 0}
+      </span>
+    </div>
+  </div>
+)}
 
           <button
             onClick={registrarMiembro}
             disabled={guardando}
             className="cursor-pointer w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50"
           >
-            {guardando ? 'Registrando...' : 'Registrar y generar QR'}
+            {guardando ? 'Registrando...' : 'Registrar y cobrar'}
           </button>
         </div>
+        <div>
+
+</div>
       </div>
     </div>
   )
