@@ -94,6 +94,31 @@ export default function PerfilMiembroPage() {
     router.push('/admin/miembros')
   }
 
+  async function reenviarQR() {
+  if (!miembro) return
+
+  // Obtiene el qr_code del miembro
+  const { data } = await supabase
+    .from('miembros')
+    .select('qr_code, nombre, telefono')
+    .eq('id', id)
+    .single()
+
+  if (!data?.qr_code) {
+    alert('Este miembro no tiene QR generado')
+    return
+  }
+
+  // Genera la URL de la imagen del QR
+  const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(data.qr_code)}`
+
+  // Abre WhatsApp con el mensaje
+  const mensaje = `Hola ${data.nombre}! Aquí está tu código QR de acceso a Aquiles Gym: ${qrImageUrl} Guárdalo para entrar al gym. ¡Te esperamos!`
+  const telefono = data.telefono.replace(/\D/g, '')
+  const url = `https://wa.me/52${telefono}?text=${encodeURIComponent(mensaje)}`
+  window.open(url, '_blank')
+}
+
   // Obtiene el último pago para mostrar el período actual
   const ultimoPago = pagos[0]
 
@@ -248,6 +273,15 @@ export default function PerfilMiembroPage() {
           {/* Acciones */}
           <div className="bg-white rounded-lg border p-6 space-y-3">
             <h2 className="font-medium mb-2">Acciones</h2>
+
+            {/* Reenviar QR */}
+            <button
+            onClick={reenviarQR}
+            className="cursor-pointer w-full text-left px-4 py-2 rounded-lg border text-sm hover:bg-gray-50"
+          >
+            Reenviar QR por WhatsApp
+            </button>
+
             <button
               onClick={congelarMembresia}
               disabled={accionLoading}
@@ -255,15 +289,14 @@ export default function PerfilMiembroPage() {
             >
               {miembro.estado === 'congelado' ? 'Descongelar membresía' : 'Congelar membresía'}
             </button>
-            <button
+            <button         
               onClick={darDeBaja}
               disabled={accionLoading}
               className="cursor-pointer w-full text-left px-4 py-2 rounded-lg border border-red-200 text-red-500 text-sm hover:bg-red-50 disabled:opacity-50"
-            >
-              Dar de baja
+              >
+               Dar de baja
             </button>
           </div>
-
         </div>
       </div>
     </div>
