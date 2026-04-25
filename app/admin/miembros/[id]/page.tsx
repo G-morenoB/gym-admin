@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { ArrowLeft } from 'lucide-react'
+import type QRCodeType from 'qrcode'
 
 type Miembro = {
   id: string
@@ -94,7 +95,7 @@ export default function PerfilMiembroPage() {
     router.push('/admin/miembros')
   }
 
-  async function reenviarQR() {
+async function reenviarQR() {
   if (!miembro) return
 
   // Obtiene el qr_code del miembro
@@ -109,14 +110,33 @@ export default function PerfilMiembroPage() {
     return
   }
 
-  // Genera la URL de la imagen del QR
-  const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(data.qr_code)}`
+  // Genera el QR como canvas en el navegador
+  const QRCode = (await import('qrcode')).default
+  const canvas = document.createElement('canvas')
+  await QRCode.toCanvas(canvas, data.qr_code, { width: 300 })
 
-  // Abre WhatsApp con el mensaje
-  const mensaje = `Hola ${data.nombre}! Aquí está tu código QR de acceso a Aquiles Gym: ${qrImageUrl} Guárdalo para entrar al gym. ¡Te esperamos!`
-  const telefono = data.telefono.replace(/\D/g, '')
-  const url = `https://wa.me/52${telefono}?text=${encodeURIComponent(mensaje)}`
-  window.open(url, '_blank')
+  // Convierte el canvas a blob
+  canvas.toBlob(async (blob) => {
+    if (!blob) return
+    const file = new File([blob], `qr-${data.nombre}.png`, { type: 'image/png' })
+
+    // Intenta compartir la imagen directamente (funciona en móvil)
+    if (navigator.share && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        title: 'QR de acceso',
+        text: `Hola ${data.nombre}! 👋 Aquí está tu QR de acceso a Aquiles Gym. Guárdalo para entrar al gym.`,
+        files: [file]
+      })
+    } else {
+      // Fallback para desktop — abre WhatsApp con link de descarga
+      const blobUrl = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = blobUrl
+      a.download = `qr-${data.nombre}.png`
+      a.click()
+      URL.revokeObjectURL(blobUrl)
+    }
+  })
 }
 
   // Obtiene el último pago para mostrar el período actual

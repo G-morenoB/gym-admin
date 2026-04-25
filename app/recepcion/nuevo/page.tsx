@@ -19,11 +19,13 @@ type MiembroCreado = {
 }
 
 export default function NuevoMiembroPage() {
-  const [metodo, setMetodo] = useState('efectivo')
   const [membresias, setMembresias] = useState<Membresia[]>([])
   const [nombre, setNombre] = useState('')
   const [telefono, setTelefono] = useState('')
   const [membresiaId, setMembresiaId] = useState('')
+  const [metodo, setMetodo] = useState('efectivo')
+  const [foto, setFoto] = useState<File | null>(null)
+  const [fotoPreview, setFotoPreview] = useState('')
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState('')
   const [miembroCreado, setMiembroCreado] = useState<MiembroCreado | null>(null)
@@ -43,6 +45,38 @@ export default function NuevoMiembroPage() {
     if (data && data.length > 0) setMembresiaId(data[0].id)
   }
 
+  function handleFoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setFoto(file)
+    const reader = new FileReader()
+    reader.onload = () => setFotoPreview(reader.result as string)
+    reader.readAsDataURL(file)
+  }
+
+  // Sube la foto a Supabase Storage y devuelve la URL pública
+  async function subirFoto(miembroId: string): Promise<string | null> {
+    if (!foto) return null
+
+    const extension = foto.name.split('.').pop()
+    const path = `${miembroId}.${extension}`
+
+    const { error } = await supabase.storage
+      .from('fotos-miembros')
+      .upload(path, foto, { upsert: true })
+
+    if (error) {
+      console.error('Error subiendo foto:', error)
+      return null
+    }
+
+    const { data } = supabase.storage
+      .from('fotos-miembros')
+      .getPublicUrl(path)
+
+    return data.publicUrl
+  }
+
   async function registrarMiembro() {
     if (!nombre.trim() || !telefono.trim() || !membresiaId) {
       setError('Todos los campos son obligatorios')
@@ -52,10 +86,9 @@ export default function NuevoMiembroPage() {
     setGuardando(true)
     setError('')
 
-    // Genera un QR code único basado en timestamp + nombre
     const qrCode = `GYM-${Date.now()}-${nombre.replace(/\s/g, '').toUpperCase()}`
 
-    // Inserta el miembro en la base de datos
+    // Inserta el miembro
     const { data: miembro, error: errorMiembro } = await supabase
       .from('miembros')
       .insert({ nombre, telefono, qr_code: qrCode, estado: 'activo' })
@@ -68,35 +101,42 @@ export default function NuevoMiembroPage() {
       return
     }
 
-    // Busca los datos de la membresía seleccionada
+    // Sube la foto y actualiza el miembro
+    const fotoUrl = await subirFoto(miembro.id)
+    if (fotoUrl) {
+      await supabase
+        .from('miembros')
+        .update({ foto_url: fotoUrl })
+        .eq('id', miembro.id)
+    }
+
     const membresia = membresias.find(m => m.id === membresiaId)
     if (!membresia) return
 
-    // Calcula la fecha de vencimiento según el tipo de membresía
     const fechaInicio = new Date()
     const fechaVencimiento = new Date()
+
     if (membresia.tipo === 'mensual') {
       fechaVencimiento.setDate(fechaVencimiento.getDate() + 30)
     } else if (membresia.tipo === 'semanal') {
       fechaVencimiento.setDate(fechaVencimiento.getDate() + 7)
     } else {
-      // Por visita — vence el mismo día
+      // Por visita
       await supabase
-      .from('visitas')
-      .insert({ miembro_id: miembro.id })
-  
-   setMiembroCreado({
-      nombre,
-      telefono,
-      qrCode: '',
-      tipo: membresia.tipo,
-      precio: membresia.precio,
-    })
-    setGuardando(false)
-    return
+        .from('visitas')
+        .insert({ miembro_id: miembro.id })
+      setMiembroCreado({
+        nombre,
+        telefono,
+        qrCode: '',
+        tipo: membresia.tipo,
+        precio: membresia.precio,
+      })
+      setGuardando(false)
+      return
     }
 
-    // Registra el pago inicial
+    // Registra el pago
     await supabase
       .from('pagos')
       .insert({
@@ -108,7 +148,6 @@ export default function NuevoMiembroPage() {
         fecha_vencimiento: fechaVencimiento.toISOString().split('T')[0],
       })
 
-    // Genera la URL del QR usando una API gratuita
     const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrCode)}`
     setQrUrl(qrImageUrl)
 
@@ -123,11 +162,29 @@ export default function NuevoMiembroPage() {
     setGuardando(false)
   }
 
-  function enviarWhatsApp() {
+  async function enviarWhatsApp() {
     if (!miembroCreado) return
-    const mensaje = `Hola ${miembroCreado.nombre}! 👋 Tu membresía en Aquiles Gym ha sido registrada exitosamente. Aquí está tu código QR de acceso: ${qrUrl} Guárdalo para entrar al gym. ¡Te esperamos!`
-    const url = `https://wa.me/52${miembroCreado.telefono.replace(/\D/g, '')}?text=${encodeURIComponent(mensaje)}`
-    window.open(url, '_blank')
+    const QRCode = (await import('qrcode')).default
+    const canvas = document.createElement('canvas')
+    await QRCode.toCanvas(canvas, miembroCreado.qrCode, { width: 300 })
+    canvas.toBlob(async (blob) => {
+      if (!blob) return
+      const file = new File([blob], `qr-${miembroCreado.nombre}.png`, { type: 'image/png' })
+      if (navigator.share && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          title: 'QR de acceso',
+          text: `Hola ${miembroCreado.nombre}! 👋 Aquí está tu QR de acceso a Aquiles Gym.`,
+          files: [file]
+        })
+      } else {
+        const blobUrl = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = blobUrl
+        a.download = `qr-${miembroCreado.nombre}.png`
+        a.click()
+        URL.revokeObjectURL(blobUrl)
+      }
+    })
   }
 
   function nuevoRegistro() {
@@ -137,9 +194,11 @@ export default function NuevoMiembroPage() {
     setMiembroCreado(null)
     setQrUrl('')
     setError('')
+    setFoto(null)
+    setFotoPreview('')
   }
 
-  // Pantalla de éxito con QR generado
+  // Pantalla de éxito
   if (miembroCreado) {
     return (
       <div className="space-y-6">
@@ -148,37 +207,35 @@ export default function NuevoMiembroPage() {
             <span className="text-green-600 text-xl">✓</span>
           </div>
           <h2 className="font-bold text-lg mb-1">¡Miembro registrado!</h2>
-          <p className="text-sm text-gray-500 mb-6">{miembroCreado.nombre} · {miembroCreado.tipo} · ${miembroCreado.precio}</p>
+          <p className="text-sm text-gray-500 mb-6">
+            {miembroCreado.nombre} · {miembroCreado.tipo} · ${miembroCreado.precio}
+          </p>
 
-          {/* QR generado */}
-          {/* QR generado — solo si no es por visita */}
           {qrUrl && miembroCreado.tipo !== 'por_visita' && (
             <div className="flex justify-center mb-6">
               <img
                 src={qrUrl}
-                alt="Código QR del miembro"
+                alt="Código QR"
                 className="w-48 h-48 border rounded-lg"
-             />
+              />
             </div>
           )}
 
-            {miembroCreado.tipo !== 'por_visita' && (
-            <p className="text-xs text-gray-400 mb-6 font-mono break-all">{miembroCreado.qrCode}</p>
-          )}           
-          {/* Botones */}
+          {miembroCreado.tipo !== 'por_visita' && (
+            <p className="text-xs text-gray-400 mb-6 font-mono break-all">
+              {miembroCreado.qrCode}
+            </p>
+          )}
+
           <div className="space-y-3">
-            <button
-              onClick={enviarWhatsApp}
-              className="cursor-pointer w-full bg-green-500 text-white py-3 rounded-lg font-medium hover:bg-green-600 flex items-center justify-center gap-2"
-            >
-              Enviar por WhatsApp
-            </button>
-            <button
-              onClick={() => window.print()}
-              className="cursor-pointer w-full border py-3 rounded-lg text-sm hover:bg-gray-50"
-            >
-              Imprimir QR
-            </button>
+            {miembroCreado.tipo !== 'por_visita' && (
+              <button
+                onClick={enviarWhatsApp}
+                className="cursor-pointer w-full bg-green-500 text-white py-3 rounded-lg font-medium hover:bg-green-600"
+              >
+                Enviar QR por WhatsApp
+              </button>
+            )}
             <button
               onClick={nuevoRegistro}
               className="cursor-pointer w-full border py-3 rounded-lg text-sm hover:bg-gray-50"
@@ -191,7 +248,7 @@ export default function NuevoMiembroPage() {
     )
   }
 
-  // Formulario de registro
+  // Formulario
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-lg border p-6">
@@ -206,6 +263,7 @@ export default function NuevoMiembroPage() {
         </div>
 
         <div className="space-y-4">
+
           <div>
             <label className="block text-sm font-medium mb-1">Nombre completo</label>
             <input
@@ -219,17 +277,53 @@ export default function NuevoMiembroPage() {
 
           <div>
             <label className="block text-sm font-medium mb-1">Teléfono</label>
-          <input
-            type="tel"
-            value={telefono}
-            onChange={(e) => {
-              const valor = e.target.value.replace(/\D/g, '').slice(0, 10)
-              setTelefono(valor)
-            }}
-            placeholder="Ej: 5512345678"
-            maxLength={10}
-            className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+            <input
+              type="tel"
+              value={telefono}
+              onChange={(e) => {
+                const valor = e.target.value.replace(/\D/g, '').slice(0, 10)
+                setTelefono(valor)
+              }}
+              maxLength={10}
+              placeholder="Ej: 5512345678"
+              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          {/* Foto del miembro */}
+          <div>
+            <label className="block text-sm font-medium mb-1">Foto del miembro</label>
+            {fotoPreview && (
+              <div className="mb-2 flex justify-center">
+                <img
+                  src={fotoPreview}
+                  alt="Preview"
+                  className="w-24 h-24 rounded-full object-cover border"
+                />
+              </div>
+            )}
+            <div className="flex gap-2">
+              <label className="cursor-pointer flex-1 border rounded-lg px-3 py-2 text-sm text-center hover:bg-gray-50 md:hidden">
+                📷 Tomar foto
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="user"
+                  onChange={handleFoto}
+                  className="hidden"
+                />
+              </label>
+              <label className="cursor-pointer flex-1 border rounded-lg px-3 py-2 text-sm text-center hover:bg-gray-50">
+                🖼 Subir foto
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFoto}
+                  className="hidden"
+                />
+              </label>
+            </div>
+            <p className="text-xs text-gray-400 mt-1">Opcional pero recomendado para verificar identidad</p>
           </div>
 
           <div>
@@ -246,29 +340,32 @@ export default function NuevoMiembroPage() {
               ))}
             </select>
           </div>
-  <label className="block text-sm font-medium mb-1">Método de pago</label>
-  <select
-    value={metodo}
-    onChange={(e) => setMetodo(e.target.value)}
-    className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-  >
-    <option value="efectivo">Efectivo</option>
-    <option value="transferencia">Transferencia</option>
-    <option value="tarjeta">Tarjeta</option>
-  </select>
-          {error && (
-            <p className="text-red-500 text-sm">{error}</p>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Método de pago</label>
+            <select
+              value={metodo}
+              onChange={(e) => setMetodo(e.target.value)}
+              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="efectivo">Efectivo</option>
+              <option value="transferencia">Transferencia</option>
+              <option value="tarjeta">Tarjeta</option>
+            </select>
+          </div>
+
+          {membresiaId && (
+            <div className="bg-gray-50 rounded-lg px-4 py-3 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-500">Total a cobrar</span>
+                <span className="font-bold text-lg">
+                  ${membresias.find(m => m.id === membresiaId)?.precio || 0}
+                </span>
+              </div>
+            </div>
           )}
-{membresiaId && (
-  <div className="bg-gray-50 rounded-lg px-4 py-3 text-sm">
-    <div className="flex justify-between">
-      <span className="text-gray-500">Total a cobrar</span>
-      <span className="font-bold text-lg">
-        ${membresias.find(m => m.id === membresiaId)?.precio || 0}
-      </span>
-    </div>
-  </div>
-)}
+
+          {error && <p className="text-red-500 text-sm">{error}</p>}
 
           <button
             onClick={registrarMiembro}
@@ -277,10 +374,8 @@ export default function NuevoMiembroPage() {
           >
             {guardando ? 'Registrando...' : 'Registrar y cobrar'}
           </button>
-        </div>
-        <div>
 
-</div>
+        </div>
       </div>
     </div>
   )

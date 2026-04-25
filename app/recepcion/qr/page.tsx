@@ -10,6 +10,7 @@ type ResultadoScan = {
   estado: 'activo' | 'por_vencer' | 'vencido'
   fechaVencimiento: string
   miembroId: string
+  fotoUrl: string
 }
 
 export default function EntradaQRPage() {
@@ -60,7 +61,7 @@ export default function EntradaQRPage() {
     // Busca el miembro por su qr_code
     const { data: miembro } = await supabase
       .from('miembros')
-      .select('id, nombre, estado')
+      .select('id, nombre, estado, foto_url')
       .eq('qr_code', qrCode)
       .single()
 
@@ -107,6 +108,7 @@ export default function EntradaQRPage() {
       estado,
       fechaVencimiento: pago?.fecha_vencimiento || '',
       miembroId: miembro.id,
+      fotoUrl: miembro.foto_url || '',
     })
   }
 
@@ -163,6 +165,16 @@ export default function EntradaQRPage() {
             <span className="text-4xl">{estiloEstado[resultado.estado].icono}</span>
             <h2 className="text-xl font-bold mt-2">{estiloEstado[resultado.estado].texto}</h2>
           </div>
+          {/* Foto del miembro */}
+{resultado.fotoUrl && (
+  <div className="flex justify-center mb-4">
+    <img
+      src={resultado.fotoUrl}
+      alt={resultado.nombre}
+      className="w-20 h-20 rounded-full object-cover border-4 border-white border-opacity-50"
+    />
+  </div>
+)}
 
 <div style={{backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: '8px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '14px', color: 'white'}}>  <div className="flex justify-between">
       <span style={{opacity: 0.8}}>Miembro</span>
