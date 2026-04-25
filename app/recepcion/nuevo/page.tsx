@@ -298,7 +298,7 @@ export default function NuevoMiembroPage() {
                 <img
                   src={fotoPreview}
                   alt="Preview"
-                  className="w-24 h-24 rounded-full object-cover border"
+                  className="w-48 h-48 rounded-lg object-cover border"
                 />
               </div>
             )}

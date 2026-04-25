@@ -171,7 +171,7 @@ export default function EntradaQRPage() {
     <img
       src={resultado.fotoUrl}
       alt={resultado.nombre}
-      className="w-20 h-20 rounded-full object-cover border-4 border-white border-opacity-50"
+      className="w-50 h-50 rounded-lg object-cover border-4 border-white border-opacity-50"
     />
   </div>
 )}
