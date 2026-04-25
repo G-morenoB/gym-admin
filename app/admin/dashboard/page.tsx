@@ -143,7 +143,7 @@ export default function DashboardPage() {
       <h1 className="text-2xl font-bold">Dashboard</h1>
 
       {/* Fila de tarjetas de métricas */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard titulo="Ingresos del día"  valor={`$${ingresosDia}`}    icon={<TrendingUp size={16} className="text-gray-400"/>} />
         <MetricCard titulo="Semana"            valor={`$${ingresosSemana}`} icon={<TrendingUp size={16} className="text-gray-400"/>} />
         <MetricCard titulo="Mes"               valor={`$${ingresosMes}`}    icon={<TrendingUp size={16} className="text-gray-400"/>} />
