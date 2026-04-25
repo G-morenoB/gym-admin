@@ -13,6 +13,7 @@ type ResultadoBusqueda = {
   tipo: string
   fechaVencimiento: string
   estadoCalculado: 'activo' | 'por_vencer' | 'vencido' | 'congelado'
+  fotoUrl: string
 }
 
 export default function BuscarPage() {
@@ -30,13 +31,13 @@ export default function BuscarPage() {
     setEntradaRegistrada(null)
 
     const { data } = await supabase
-      .from('miembros')
-      .select(`
-        id, nombre, telefono, estado,
-        pagos(fecha_vencimiento, membresias(tipo))
-      `)
-      .ilike('nombre', `%${busqueda}%`)
-      .order('nombre')
+  .from('miembros')
+  .select(`
+    id, nombre, telefono, estado, foto_url,
+    pagos(fecha_vencimiento, membresias(tipo))
+  `)
+  .ilike('nombre', `%${busqueda}%`)
+  .order('nombre')
 
     if (data) {
       const conEstado = data.map((m: any) => {
@@ -63,6 +64,7 @@ export default function BuscarPage() {
           tipo: ultimoPago?.membresias?.tipo || '—',
           fechaVencimiento: ultimoPago?.fecha_vencimiento || '',
           estadoCalculado,
+          fotoUrl: m.foto_url || '',
         }
       })
       setResultados(conEstado)
@@ -133,22 +135,36 @@ export default function BuscarPage() {
 
             return (
               <div key={m.id} className="bg-white rounded-lg border p-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="font-medium">{m.nombre}</p>
-                    <p className="text-sm text-gray-500">{m.telefono}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${badge.clase}`}>
-                        {badge.texto}
-                      </span>
-                      <span className="text-xs text-gray-500 capitalize">{m.tipo}</span>
-                      {m.fechaVencimiento && (
-                        <span className="text-xs text-gray-400">
-                          · Vence {new Date(m.fechaVencimiento + 'T00:00:00').toLocaleDateString('es-MX')}
-                        </span>
-                      )}
-                    </div>
-                  </div>
+  <div className="flex justify-between items-start">
+    <div className="flex items-center gap-3">
+      {/* Foto del miembro */}
+      {m.fotoUrl ? (
+        <img
+          src={m.fotoUrl}
+          alt={m.nombre}
+          className="w-12 h-12 rounded-lg object-cover border"
+        />
+      ) : (
+        <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center border">
+          <span className="text-gray-400 text-lg">👤</span>
+        </div>
+      )}
+      <div>
+        <p className="font-medium">{m.nombre}</p>
+        <p className="text-sm text-gray-500">{m.telefono}</p>
+        <div className="flex items-center gap-2 mt-1">
+          <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${badge.clase}`}>
+            {badge.texto}
+          </span>
+          <span className="text-xs text-gray-500 capitalize">{m.tipo}</span>
+          {m.fechaVencimiento && (
+            <span className="text-xs text-gray-400">
+              · Vence {new Date(m.fechaVencimiento + 'T00:00:00').toLocaleDateString('es-MX')}
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
 
                   <div className="flex flex-col gap-2 items-end">
                     {yaEntro ? (

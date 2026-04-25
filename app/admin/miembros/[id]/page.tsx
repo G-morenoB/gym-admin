@@ -12,6 +12,7 @@ type Miembro = {
   telefono: string
   estado: string
   created_at: string
+  foto_url: string
 }
 
 type Pago = {
@@ -170,16 +171,30 @@ async function reenviarQR() {
           {/* Tarjeta de información general */}
           <div className="bg-white rounded-lg border p-6">
             <div className="flex justify-between items-start mb-4">
-              <div>
-                <h1 className="text-xl font-bold">{miembro.nombre}</h1>
-                <span className={`text-xs font-medium px-2 py-1 rounded-full mt-1 inline-block ${
-                  miembro.estado === 'activo'    ? 'text-green-600 bg-green-50' :
-                  miembro.estado === 'congelado' ? 'text-blue-500 bg-blue-50' :
-                  'text-red-500 bg-red-50'
-                }`}>
-                  {miembro.estado.charAt(0).toUpperCase() + miembro.estado.slice(1)}
-                </span>
-              </div>
+              <div className="flex items-center gap-4 mb-4">
+  {/* Foto del miembro */}
+  {miembro.foto_url ? (
+    <img
+      src={miembro.foto_url}
+      alt={miembro.nombre}
+      className="w-30 h-30 rounded-lg object-cover border"
+    />
+  ) : (
+    <div className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center border">
+      <span className="text-gray-400 text-2xl">👤</span>
+    </div>
+  )}
+  <div>
+    <h1 className="text-xl font-bold">{miembro.nombre}</h1>
+    <span className={`text-xs font-medium px-2 py-1 rounded-full mt-1 inline-block ${
+      miembro.estado === 'activo'    ? 'text-green-600 bg-green-50' :
+      miembro.estado === 'congelado' ? 'text-blue-500 bg-blue-50' :
+      'text-red-500 bg-red-50'
+    }`}>
+      {miembro.estado.charAt(0).toUpperCase() + miembro.estado.slice(1)}
+    </span>
+  </div>
+</div>
               <button
                 onClick={() => router.push(`/admin/miembros/${id}/editar`)}
                 className=" cursor-pointer text-sm border px-3 py-1.5 rounded-lg hover:bg-gray-50"
