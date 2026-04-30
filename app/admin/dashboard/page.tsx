@@ -178,14 +178,15 @@ setVencenManana(vencenMananaFiltrados)
       </div>
 
       {/* Fila de activos / vencidos / total */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
         <MetricCard titulo="Activos"  valor={activos}  color="text-green-600" />
         <MetricCard titulo="Vencidos" valor={vencidos} color="text-red-500" />
         <MetricCard titulo="Total"    valor={total} />
       </div>
 
       {/* Gráficas */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
         {/* Gráfica de ingresos últimos 7 días */}
         <div className="bg-white rounded-lg border p-4">

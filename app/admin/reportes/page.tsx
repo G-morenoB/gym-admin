@@ -227,40 +227,26 @@ export default function ReportesPage() {
           </div>
 
           {/* Tabla de pagos del período */}
-          <div className="bg-white rounded-lg border overflow-hidden">
-            <div className="flex justify-between items-center px-4 py-3 border-b">
-              <h2 className="text-sm font-medium">Pagos del período</h2>
-            </div>
-            <table className="w-full">
-              <thead className="border-b bg-gray-50">
-                <tr>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Fecha</th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Miembro</th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Tipo</th>
-                  <th className="text-right px-4 py-3 text-sm font-medium text-gray-600">Monto</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pagos.map((pago) => (
-                  <tr key={pago.id} className="border-b last:border-0 hover:bg-gray-50">
-                    <td className="px-4 py-3 text-sm text-gray-600">
-                        {new Date(pago.created_at).toLocaleDateString('es-MX', { timeZone: 'America/Mexico_City' })}
-                    </td>
-                    <td className="px-4 py-3 text-sm font-medium">{pago.miembros?.nombre}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600 capitalize">{pago.membresias?.tipo}</td>
-                    <td className="px-4 py-3 text-sm text-right font-medium">${pago.monto}</td>
-                  </tr>
-                ))}
-                {pagos.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="px-4 py-8 text-center text-sm text-gray-400">
-                      No hay pagos en este período
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+          {/* Móvil — tarjetas de pagos */}
+<div className="md:hidden space-y-3">
+  {pagos.map((pago) => (
+    <div key={pago.id} className="bg-white rounded-lg border p-4">
+      <div className="flex justify-between items-start">
+        <p className="font-medium text-sm">{pago.miembros?.nombre}</p>
+        <p className="font-bold text-sm">${pago.monto}</p>
+      </div>
+      <div className="flex justify-between items-center mt-2 text-xs text-gray-500">
+        <span className="capitalize">{pago.membresias?.tipo} · {pago.metodo}</span>
+        <span>{new Date(pago.fecha_inicio + 'T00:00:00').toLocaleDateString('es-MX')}</span>
+      </div>
+    </div>
+  ))}
+  {pagos.length === 0 && (
+    <div className="bg-white rounded-lg border p-6 text-center">
+      <p className="text-sm text-gray-400">No hay pagos en este período</p>
+    </div>
+  )}
+</div>
         </div>
       )}
 

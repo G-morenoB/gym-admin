@@ -139,66 +139,104 @@ const miembrosFiltrados = miembros.filter(m => {
       </div>
         
       {/* Tabla de miembros */}
-      <div className="bg-white rounded-lg border overflow-hidden">
-        <table className="w-full">
-          <thead className="border-b bg-gray-50">
-            <tr>
-              <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Nombre</th>
-              <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Contacto</th>
-              <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Membresía</th>
-              <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Estado</th>
-              <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Vencimiento</th>
-              <th className="px-4 py-3"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {miembrosFiltrados.map((miembro) => {
-              const estado = calcularEstado(miembro)
-              const badge = badgeEstado(estado)
-              const vencimiento = miembro.ultimo_pago?.fecha_vencimiento
-              const fechaVence = vencimiento ? new Date(vencimiento + 'T00:00:00') : null
-              const esCercano = fechaVence && 
-                Math.ceil((fechaVence.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) <= 3
+      {/* Desktop — tabla normal */}
+      <div className="bg-white rounded-lg border overflow-hidden hidden md:block">
+  <table className="w-full">
+    <thead className="border-b bg-gray-50">
+      <tr>
+        <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Nombre</th>
+        <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Contacto</th>
+        <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Membresía</th>
+        <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Estado</th>
+        <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Vencimiento</th>
+        <th className="px-4 py-3"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {miembrosFiltrados.map((miembro) => {
+        const estado = calcularEstado(miembro)
+        const badge = badgeEstado(estado)
+        const vencimiento = miembro.ultimo_pago?.fecha_vencimiento
+        const fechaVence = vencimiento ? new Date(vencimiento + 'T00:00:00') : null
+        const esCercano = fechaVence &&
+          Math.ceil((fechaVence.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) <= 3
 
-              return (
-                <tr key={miembro.id} className="border-b last:border-0 hover:bg-gray-50 cursor-pointer">
-                  <td className="px-4 py-3 text-sm font-medium">{miembro.nombre}</td>
-                  <td className="px-4 py-3 text-sm text-gray-500">{miembro.telefono}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600 capitalize">
-                    {miembro.ultimo_pago?.membresias?.tipo || '—'}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={`text-xs font-medium px-2 py-1 rounded-full ${badge.clase}`}>
-                      {badge.texto}
-                    </span>
-                  </td>
-                  <td className={`px-4 py-3 text-sm ${esCercano ? 'text-orange-500 font-medium' : 'text-gray-600'}`}>
-                    {fechaVence
-                      ? fechaVence.toLocaleDateString('es-MX')
-                      : '—'}
-                  </td>
-                  <td className="px-4 py-3 text-sm">
-                    <button
-                      onClick={() => router.push(`/admin/miembros/${miembro.id}`)}
-                      className=" cursor-pointer text-blue-600 hover:underline"
-                    >
-                      Ver perfil
-                    </button>
-                  </td>
-                </tr>
-              )
-            })}
+        return (
+          <tr key={miembro.id} className="border-b last:border-0 hover:bg-gray-50 cursor-pointer">
+            <td className="px-4 py-3 text-sm font-medium">{miembro.nombre}</td>
+            <td className="px-4 py-3 text-sm text-gray-500">{miembro.telefono}</td>
+            <td className="px-4 py-3 text-sm text-gray-600 capitalize">
+              {miembro.ultimo_pago?.membresias?.tipo || '—'}
+            </td>
+            <td className="px-4 py-3">
+              <span className={`text-xs font-medium px-2 py-1 rounded-full ${badge.clase}`}>
+                {badge.texto}
+              </span>
+            </td>
+            <td className={`px-4 py-3 text-sm ${esCercano ? 'text-orange-500 font-medium' : 'text-gray-600'}`}>
+              {fechaVence ? fechaVence.toLocaleDateString('es-MX') : '—'}
+            </td>
+            <td className="px-4 py-3 text-sm">
+              <button
+                onClick={() => router.push(`/admin/miembros/${miembro.id}`)}
+                className="cursor-pointer text-blue-600 hover:underline"
+              >
+                Ver perfil
+              </button>
+            </td>
+          </tr>
+        )
+      })}
+      {miembrosFiltrados.length === 0 && (
+        <tr>
+          <td colSpan={6} className="px-4 py-8 text-center text-sm text-gray-400">
+            No se encontraron miembros
+          </td>
+        </tr>
+      )}
+    </tbody>
+  </table>
+      </div>
 
-            {/* Si no hay resultados */}
-            {miembrosFiltrados.length === 0 && (
-              <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-sm text-gray-400">
-                  No se encontraron miembros
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+      {/* Móvil — tarjetas */}
+      <div className="md:hidden space-y-3">
+        {miembrosFiltrados.map((miembro) => {
+          const estado = calcularEstado(miembro)
+          const badge = badgeEstado(estado)
+          const vencimiento = miembro.ultimo_pago?.fecha_vencimiento
+          const fechaVence = vencimiento ? new Date(vencimiento + 'T00:00:00') : null
+          const esCercano = fechaVence &&
+            Math.ceil((fechaVence.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) <= 3
+        
+          return (
+            <div
+              key={miembro.id}
+              className="bg-white rounded-lg border p-4 cursor-pointer"
+              onClick={() => router.push(`/admin/miembros/${miembro.id}`)}
+            >
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="font-medium text-sm">{miembro.nombre}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{miembro.telefono}</p>
+                </div>
+                <span className={`text-xs font-medium px-2 py-1 rounded-full ${badge.clase}`}>
+                  {badge.texto}
+                </span>
+              </div>
+              <div className="flex justify-between items-center mt-3 text-xs text-gray-500">
+                <span className="capitalize">{miembro.ultimo_pago?.membresias?.tipo || '—'}</span>
+                <span className={esCercano ? 'text-orange-500 font-medium' : ''}>
+                  {fechaVence ? `Vence ${fechaVence.toLocaleDateString('es-MX')}` : '—'}
+                </span>
+              </div>
+            </div>
+          )
+        })}
+        {miembrosFiltrados.length === 0 && (
+    <div className="bg-white rounded-lg border p-6 text-center">
+      <p className="text-sm text-gray-400">No se encontraron miembros</p>
+    </div>
+        )}
       </div>
 
     </div>
