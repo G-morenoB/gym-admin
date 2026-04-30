@@ -47,10 +47,10 @@ export default function ReportesPage() {
     // Trae pagos dentro del rango de fechas seleccionado
     const { data } = await supabase
       .from('pagos')
-      .select('*, miembros(nombre), membresias(tipo)')
-      .gte('created_at', fechaInicio)
-      .lte('created_at', fechaFin + 'T23:59:59')
-      .order('created_at', { ascending: false })
+     .select('*, miembros(nombre), membresias(tipo)')
+     .gte('fecha_inicio', fechaInicio)
+     .lte('fecha_inicio', fechaFin)
+     .order('fecha_inicio', { ascending: false })
 
     const lista = data || []
     setPagos(lista)
@@ -150,8 +150,7 @@ export default function ReportesPage() {
               {pagos.map((pago) => (
                 <tr key={pago.id} className="border-b last:border-0 hover:bg-gray-50">
                   <td className="px-4 py-3 text-sm text-gray-600">
-                   {new Date(pago.created_at).toLocaleDateString('es-MX', { timeZone: 'America/Mexico_City' })}
-                  </td>
+                  {new Date(pago.fecha_inicio + 'T00:00:00').toLocaleDateString('es-MX')}                  </td>
                   <td className="px-4 py-3 text-sm font-medium">{pago.miembros?.nombre}</td>
                   <td className="px-4 py-3 text-sm text-gray-600 capitalize">{pago.membresias?.tipo}</td>
                   <td className="px-4 py-3 text-sm text-gray-600 capitalize">{pago.metodo}</td>

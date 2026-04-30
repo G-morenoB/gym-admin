@@ -87,18 +87,45 @@ export default function DashboardPage() {
     setVencidos((totalM || 0) - activosUnicos.size)
 
     // Miembros que vencen hoy
-    const { data: hoyVencen } = await supabase
+    // Trae todos los pagos con fecha_vencimiento >= hoy para verificar renovaciones
+    const { data: todosPagos } = await supabase
       .from('pagos')
-      .select('miembro_id, miembros(nombre, telefono)')
-      .eq('fecha_vencimiento', hoy)
-    setVencenHoy(hoyVencen || [])
+      .select('miembro_id, fecha_vencimiento')
+      .gte('fecha_vencimiento', hoy)
 
-    // Miembros que vencen mañana
-    const { data: mananaVencen } = await supabase
-      .from('pagos')
-      .select('miembro_id, miembros(nombre, telefono)')
-      .eq('fecha_vencimiento', fechaManana)
-    setVencenManana(mananaVencen || [])
+    // Miembros que vencen hoy
+    const { data: hoyVencen } = await supabase
+    .from('pagos')
+    .select('miembro_id, miembros(nombre, telefono)')
+    .eq('fecha_vencimiento', hoy)
+
+// Filtra los que ya tienen un pago con fecha_vencimiento mayor a hoy
+const vencenHoyFiltrados = (hoyVencen || []).filter((p: any) => {
+  const tieneRenovacion = todosPagos?.some(
+    (otro: any) =>
+      otro.miembro_id === p.miembro_id &&
+      otro.fecha_vencimiento > hoy
+  )
+  return !tieneRenovacion
+})
+setVencenHoy(vencenHoyFiltrados)
+
+// Miembros que vencen mañana
+const { data: mananaVencen } = await supabase
+  .from('pagos')
+  .select('miembro_id, miembros(nombre, telefono)')
+  .eq('fecha_vencimiento', fechaManana)
+
+// Filtra los que ya tienen un pago con fecha_vencimiento mayor a mañana
+const vencenMananaFiltrados = (mananaVencen || []).filter((p: any) => {
+  const tieneRenovacion = todosPagos?.some(
+    (otro: any) =>
+      otro.miembro_id === p.miembro_id &&
+      otro.fecha_vencimiento > fechaManana
+  )
+  return !tieneRenovacion
+})
+setVencenManana(vencenMananaFiltrados)
 
     // Gráfica de ingresos últimos 7 días
     const { data: pagosGrafica } = await supabase

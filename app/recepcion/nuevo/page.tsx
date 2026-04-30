@@ -1,5 +1,6 @@
 'use client'
 
+import { fechaHoyMexico, fechaVencimientoMexico } from '../../../lib/fecha'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../../lib/supabase'
 import { UserPlus } from 'lucide-react'
@@ -78,10 +79,11 @@ export default function NuevoMiembroPage() {
   }
 
   async function registrarMiembro() {
-    if (!nombre.trim() || !telefono.trim() || !membresiaId) {
+    const esVisita = membresias.find(m => m.id === membresiaId)?.tipo === 'por_visita'
+    if (!nombre.trim() || (!esVisita && !telefono.trim()) || !membresiaId) {
       setError('Todos los campos son obligatorios')
       return
-    }
+  }
 
     setGuardando(true)
     setError('')
@@ -113,20 +115,30 @@ export default function NuevoMiembroPage() {
     const membresia = membresias.find(m => m.id === membresiaId)
     if (!membresia) return
 
-    const fechaInicio = new Date()
-    const fechaVencimiento = new Date()
+    // Calcula fechas según el tipo de membresía
+    const fechaInicio = fechaHoyMexico()
+    let fechaVencimiento = fechaHoyMexico()
 
     if (membresia.tipo === 'mensual') {
-      fechaVencimiento.setDate(fechaVencimiento.getDate() + 30)
+      fechaVencimiento = fechaVencimientoMexico(30)
     } else if (membresia.tipo === 'semanal') {
-      fechaVencimiento.setDate(fechaVencimiento.getDate() + 7)
+      fechaVencimiento = fechaVencimientoMexico(7)
     } else {
       // Por visita
-      await supabase
-        .from('visitas')
-        .insert({ miembro_id: miembro.id })
+      await supabase.from('visitas').insert({ miembro_id: miembro.id })
+      const membresiaPorVisita = membresias.find(m => m.id === membresiaId)
+      if (membresiaPorVisita) {
+        await supabase.from('pagos').insert({
+          miembro_id: miembro.id,
+          membresia_id: membresiaId,
+          monto: membresiaPorVisita.precio,
+          metodo: metodo,
+          fecha_inicio: fechaInicio,
+          fecha_vencimiento: fechaInicio,
+        })
+      }
       setMiembroCreado({
-        nombre,
+           nombre,
         telefono,
         qrCode: '',
         tipo: membresia.tipo,
@@ -137,16 +149,14 @@ export default function NuevoMiembroPage() {
     }
 
     // Registra el pago
-    await supabase
-      .from('pagos')
-      .insert({
-        miembro_id: miembro.id,
-        membresia_id: membresiaId,
-        monto: membresia.precio,
-        metodo: metodo,
-        fecha_inicio: fechaInicio.toISOString().split('T')[0],
-        fecha_vencimiento: fechaVencimiento.toISOString().split('T')[0],
-      })
+    await supabase.from('pagos').insert({
+      miembro_id: miembro.id,
+      membresia_id: membresiaId,
+      monto: membresia.precio,
+      metodo: metodo,
+      fecha_inicio: fechaInicio,
+      fecha_vencimiento: fechaVencimiento,
+    })
 
     const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrCode)}`
     setQrUrl(qrImageUrl)
@@ -247,7 +257,8 @@ export default function NuevoMiembroPage() {
       </div>
     )
   }
-
+  // Detecta si la membresía seleccionada es por visita
+  const esPorVisita = membresias.find(m => m.id === membresiaId)?.tipo === 'por_visita'
   // Formulario
   return (
     <div className="space-y-6">
@@ -263,7 +274,21 @@ export default function NuevoMiembroPage() {
         </div>
 
         <div className="space-y-4">
-
+                    <div>
+            <label className="block text-sm font-medium mb-1">Tipo de membresía</label>
+            <select
+              value={membresiaId}
+              onChange={(e) => setMembresiaId(e.target.value)}
+              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {membresias.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.tipo.charAt(0).toUpperCase() + m.tipo.slice(1)} — ${m.precio}
+                </option>
+              ))}
+            </select>
+          </div>
+          
           <div>
             <label className="block text-sm font-medium mb-1">Nombre completo</label>
             <input
@@ -275,6 +300,7 @@ export default function NuevoMiembroPage() {
             />
           </div>
 
+          {!esPorVisita && (
           <div>
             <label className="block text-sm font-medium mb-1">Teléfono</label>
             <input
@@ -289,57 +315,45 @@ export default function NuevoMiembroPage() {
               className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
+        )}
 
           {/* Foto del miembro */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Foto del miembro</label>
-            {fotoPreview && (
-              <div className="mb-2 flex justify-center">
-                <img
-                  src={fotoPreview}
-                  alt="Preview"
-                  className="w-48 h-48 rounded-lg object-cover border"
-                />
-              </div>
-            )}
-            <div className="flex gap-2">
-              <label className="cursor-pointer flex-1 border rounded-lg px-3 py-2 text-sm text-center hover:bg-gray-50 md:hidden">
-                📷 Tomar foto
-                <input
-                  type="file"
-                  accept="image/*"
-                  capture="user"
-                  onChange={handleFoto}
-                  className="hidden"
-                />
-              </label>
-              <label className="cursor-pointer flex-1 border rounded-lg px-3 py-2 text-sm text-center hover:bg-gray-50">
-                🖼 Subir foto
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFoto}
-                  className="hidden"
-                />
-              </label>
-            </div>
-            <p className="text-xs text-gray-400 mt-1">Opcional pero recomendado para verificar identidad</p>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Tipo de membresía</label>
-            <select
-              value={membresiaId}
-              onChange={(e) => setMembresiaId(e.target.value)}
-              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {membresias.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.tipo.charAt(0).toUpperCase() + m.tipo.slice(1)} — ${m.precio}
-                </option>
-              ))}
-            </select>
-          </div>
+         {!esPorVisita && (
+  <div>
+    <label className="block text-sm font-medium mb-1">Foto del miembro</label>
+    {fotoPreview && (
+      <div className="mb-2 flex justify-center">
+        <img
+          src={fotoPreview}
+          alt="Preview"
+          className="w-24 h-24 rounded-lg object-cover border"
+        />
+      </div>
+    )}
+    <div className="flex gap-2">
+      <label className="cursor-pointer flex-1 border rounded-lg px-3 py-2 text-sm text-center hover:bg-gray-50 md:hidden">
+        📷 Tomar foto
+        <input
+          type="file"
+          accept="image/*"
+          capture="user"
+          onChange={handleFoto}
+          className="hidden"
+        />
+      </label>
+      <label className="cursor-pointer flex-1 border rounded-lg px-3 py-2 text-sm text-center hover:bg-gray-50">
+        🖼 Subir foto
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleFoto}
+          className="hidden"
+        />
+      </label>
+    </div>
+    <p className="text-xs text-gray-400 mt-1">Opcional pero recomendado para verificar identidad</p>
+  </div>
+)}
 
           <div>
             <label className="block text-sm font-medium mb-1">Método de pago</label>
