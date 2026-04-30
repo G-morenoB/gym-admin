@@ -135,76 +135,129 @@ export default function ReportesPage() {
 
       {/* Pestaña: Historial de pagos */}
       {pestana === 'historial' && (
-        <div className="bg-white rounded-lg border overflow-hidden">
-          <table className="w-full">
-            <thead className="border-b bg-gray-50">
-              <tr>
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Fecha</th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Miembro</th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Tipo</th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Método</th>
-                <th className="text-right px-4 py-3 text-sm font-medium text-gray-600">Monto</th>
-              </tr>
-            </thead>
-            <tbody>
-              {pagos.map((pago) => (
-                <tr key={pago.id} className="border-b last:border-0 hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm text-gray-600">
-                  {new Date(pago.fecha_inicio + 'T00:00:00').toLocaleDateString('es-MX')}                  </td>
-                  <td className="px-4 py-3 text-sm font-medium">{pago.miembros?.nombre}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600 capitalize">{pago.membresias?.tipo}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600 capitalize">{pago.metodo}</td>
-                  <td className="px-4 py-3 text-sm text-right font-medium">${pago.monto}</td>
-                </tr>
-              ))}
-              {pagos.length === 0 && (
+        <div>
+          {/* Desktop — tabla */}
+          <div className="bg-white rounded-lg border overflow-hidden hidden md:block">
+            <table className="w-full">
+              <thead className="border-b bg-gray-50">
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-sm text-gray-400">
-                    No hay pagos en este período
-                  </td>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Fecha</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Miembro</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Tipo</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Método</th>
+                  <th className="text-right px-4 py-3 text-sm font-medium text-gray-600">Monto</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {pagos.map((pago) => (
+                  <tr key={pago.id} className="border-b last:border-0 hover:bg-gray-50">
+                    <td className="px-4 py-3 text-sm text-gray-600">
+                      {new Date(pago.fecha_inicio + 'T00:00:00').toLocaleDateString('es-MX')}
+                    </td>
+                    <td className="px-4 py-3 text-sm font-medium">{pago.miembros?.nombre}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600 capitalize">{pago.membresias?.tipo}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600 capitalize">{pago.metodo}</td>
+                    <td className="px-4 py-3 text-sm text-right font-medium">${pago.monto}</td>
+                  </tr>
+                ))}
+                {pagos.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-8 text-center text-sm text-gray-400">
+                      No hay pagos en este período
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+    {/* Móvil — tarjetas */}
+    <div className="md:hidden space-y-3">
+      {pagos.map((pago) => (
+        <div key={pago.id} className="bg-white rounded-lg border p-4">
+          <div className="flex justify-between items-start">
+            <p className="font-medium text-sm">{pago.miembros?.nombre}</p>
+            <p className="font-bold text-sm">${pago.monto}</p>
+          </div>
+          <div className="flex justify-between items-center mt-2 text-xs text-gray-500">
+            <span className="capitalize">{pago.membresias?.tipo} · {pago.metodo}</span>
+            <span>{new Date(pago.fecha_inicio + 'T00:00:00').toLocaleDateString('es-MX')}</span>
+          </div>
+        </div>
+      ))}
+      {pagos.length === 0 && (
+        <div className="bg-white rounded-lg border p-6 text-center">
+          <p className="text-sm text-gray-400">No hay pagos en este período</p>
         </div>
       )}
+    </div>
+  </div>
+)}
 
       {/* Pestaña: Membresías vencidas */}
-      {pestana === 'vencidas' && (
-        <div className="bg-white rounded-lg border overflow-hidden">
-          <table className="w-full">
-            <thead className="border-b bg-gray-50">
-              <tr>
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Miembro</th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Teléfono</th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Membresía</th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Venció</th>
-              </tr>
-            </thead>
-            <tbody>
-              {vencidos.map((m) => (
-                <tr key={m.id} className="border-b last:border-0 hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm font-medium">{m.nombre}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600">{m.telefono}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600 capitalize">{m.tipo}</td>
-                  <td className="px-4 py-3 text-sm text-red-500">
-                    {m.ultimo_vencimiento
-                      ? new Date(m.ultimo_vencimiento + 'T00:00:00').toLocaleDateString('es-MX')
-                      : '—'}
-                  </td>
-                </tr>
-              ))}
-              {vencidos.length === 0 && (
-                <tr>
-                  <td colSpan={4} className="px-4 py-8 text-center text-sm text-gray-400">
-                    No hay membresías vencidas
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+{pestana === 'vencidas' && (
+  <div>
+    {/* Desktop — tabla */}
+    <div className="bg-white rounded-lg border overflow-hidden hidden md:block">
+      <table className="w-full">
+        <thead className="border-b bg-gray-50">
+          <tr>
+            <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Miembro</th>
+            <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Teléfono</th>
+            <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Membresía</th>
+            <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">Venció</th>
+          </tr>
+        </thead>
+        <tbody>
+          {vencidos.map((m) => (
+            <tr key={m.id} className="border-b last:border-0 hover:bg-gray-50">
+              <td className="px-4 py-3 text-sm font-medium">{m.nombre}</td>
+              <td className="px-4 py-3 text-sm text-gray-600">{m.telefono}</td>
+              <td className="px-4 py-3 text-sm text-gray-600 capitalize">{m.tipo}</td>
+              <td className="px-4 py-3 text-sm text-red-500">
+                {m.ultimo_vencimiento
+                  ? new Date(m.ultimo_vencimiento + 'T00:00:00').toLocaleDateString('es-MX')
+                  : '—'}
+              </td>
+            </tr>
+          ))}
+          {vencidos.length === 0 && (
+            <tr>
+              <td colSpan={4} className="px-4 py-8 text-center text-sm text-gray-400">
+                No hay membresías vencidas
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+
+    {/* Móvil — tarjetas */}
+    <div className="md:hidden space-y-3">
+      {vencidos.map((m) => (
+        <div key={m.id} className="bg-white rounded-lg border p-4">
+          <div className="flex justify-between items-start">
+            <p className="font-medium text-sm">{m.nombre}</p>
+            <span className="text-xs text-red-500 font-medium">
+              {m.ultimo_vencimiento
+                ? new Date(m.ultimo_vencimiento + 'T00:00:00').toLocaleDateString('es-MX')
+                : '—'}
+            </span>
+          </div>
+          <div className="flex justify-between items-center mt-2 text-xs text-gray-500">
+            <span>{m.telefono}</span>
+            <span className="capitalize">{m.tipo}</span>
+          </div>
+        </div>
+      ))}
+      {vencidos.length === 0 && (
+        <div className="bg-white rounded-lg border p-6 text-center">
+          <p className="text-sm text-gray-400">No hay membresías vencidas</p>
         </div>
       )}
+    </div>
+  </div>
+)}
 
       {/* Pestaña: Ingresos por período */}
       {pestana === 'ingresos' && (
