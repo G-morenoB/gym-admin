@@ -40,8 +40,8 @@ async function handleLogout() {
           </button>
         </div>
 
-        {/* Navegación */}
-        <nav className="flex gap-1 py-1">
+        {/* Navegación — scroll horizontal en móvil */}
+        <nav className="flex gap-1 py-1 overflow-x-auto scrollbar-hide">
           {menuItems.map((item) => {
             const isActive = pathname === item.href
             const Icon = item.icon
@@ -49,14 +49,14 @@ async function handleLogout() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-2 px-4 py-2 text-sm rounded-lg transition-colors ${
+                className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors whitespace-nowrap ${
                   isActive
                     ? 'border-b-2 border-gray-900 text-gray-900 font-medium'
                     : 'text-gray-500 hover:text-gray-800'
                 }`}
               >
                 <Icon size={16} />
-                {item.label}
+                <span className="hidden sm:inline">{item.label}</span>
               </Link>
             )
           })}

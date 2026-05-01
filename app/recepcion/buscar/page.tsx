@@ -22,6 +22,7 @@ export default function BuscarPage() {
   const [buscando, setBuscando] = useState(false)
   const [registrando, setRegistrando] = useState<string | null>(null)
   const [entradaRegistrada, setEntradaRegistrada] = useState<string | null>(null)
+  const [fotoModal, setFotoModal] = useState<string | null>(null)
   const router = useRouter()
 
   async function buscarMiembro() {
@@ -142,7 +143,8 @@ export default function BuscarPage() {
         <img
           src={m.fotoUrl}
           alt={m.nombre}
-          className="w-12 h-12 rounded-lg object-cover border"
+          onClick={(e) => { e.stopPropagation(); setFotoModal(m.fotoUrl) }}
+          className="w-12 h-12 rounded-lg object-cover border cursor-pointer hover:opacity-80 transition-opacity"
         />
       ) : (
         <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center border">
@@ -199,6 +201,28 @@ export default function BuscarPage() {
       {resultados.length === 0 && busqueda && !buscando && (
         <div className="bg-white rounded-lg border p-6 text-center">
           <p className="text-sm text-gray-400">No se encontraron miembros con ese nombre</p>
+        </div>
+      )}
+      
+      {/* Modal de foto */}
+      {fotoModal && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center p-4"
+          onClick={() => setFotoModal(null)}
+        >
+          <div className="relative max-w-sm w-full">
+            <img
+              src={fotoModal}
+              alt="Foto del miembro"
+              className="w-full rounded-lg object-cover"
+            />
+            <button
+              onClick={() => setFotoModal(null)}
+              className="absolute top-2 right-2 bg-white rounded-full w-8 h-8 flex items-center justify-center text-gray-800 font-bold"
+            >
+              ✕
+            </button>
+          </div>
         </div>
       )}
 
