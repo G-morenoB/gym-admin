@@ -41,7 +41,7 @@ async function handleLogout() {
         </div>
 
         {/* Navegación — scroll horizontal en móvil */}
-        <nav className="flex gap-1 py-1 overflow-x-auto scrollbar-hide">
+        <nav className="flex gap-1 justify-center items-center py-1 overflow-x-auto scrollbar-hide">
           {menuItems.map((item) => {
             const isActive = pathname === item.href
             const Icon = item.icon

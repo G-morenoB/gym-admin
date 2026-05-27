@@ -163,16 +163,17 @@ async function reenviarQR() {
         Volver a miembros
       </button>
 
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {/* Columna izquierda — información del miembro */}
-        <div className="col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-6 min-w-0">
 
           {/* Tarjeta de información general */}
           <div className="bg-white rounded-lg border p-6">
-            <div className="flex justify-between items-start mb-4">
-              <div className="flex items-center gap-4 mb-4">
-  {/* Foto del miembro */}
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-4">
+          <div className="flex items-start gap-4 min-w-0">
+
+          {/* Foto del miembro */}
   {miembro.foto_url ? (
     <img
       src={miembro.foto_url}
@@ -185,7 +186,7 @@ async function reenviarQR() {
     </div>
   )}
   <div>
-    <h1 className="text-xl font-bold">{miembro.nombre}</h1>
+    <h1 className="text-xl font-bold break-words">{miembro.nombre}</h1>
     <span className={`text-xs font-medium px-2 py-1 rounded-full mt-1 inline-block ${
       miembro.estado === 'activo'    ? 'text-green-600 bg-green-50' :
       miembro.estado === 'congelado' ? 'text-blue-500 bg-blue-50' :
@@ -196,11 +197,12 @@ async function reenviarQR() {
   </div>
 </div>
               <button
-                onClick={() => router.push(`/admin/miembros/${id}/editar`)}
-                className=" cursor-pointer text-sm border px-3 py-1.5 rounded-lg hover:bg-gray-50"
+              onClick={() => router.push(`/admin/miembros/${id}/editar`)}
+              className="cursor-pointer text-sm border px-3 py-1.5 rounded-lg hover:bg-gray-50 w-full sm:w-auto"
               >
-                Editar
-              </button>
+              Editar
+             </button>
+
             </div>
 
             {/* Datos del miembro */}
@@ -312,7 +314,7 @@ async function reenviarQR() {
             {/* Reenviar QR */}
             <button
             onClick={reenviarQR}
-            className="cursor-pointer w-full text-left px-4 py-2 rounded-lg border text-sm hover:bg-gray-50"
+            className="cursor-pointer w-full text-left px-4 py-2 rounded-lg border text-sm hover:bg-gray-50 whitespace-normal break-words"
           >
             Reenviar QR por WhatsApp
             </button>
@@ -320,7 +322,7 @@ async function reenviarQR() {
             <button
               onClick={congelarMembresia}
               disabled={accionLoading}
-              className="cursor-pointer w-full text-left px-4 py-2 rounded-lg border text-sm hover:bg-gray-50 disabled:opacity-50"
+              className="cursor-pointer w-full text-left px-4 py-2 rounded-lg border text-sm hover:bg-gray-50 whitespace-normal break-words disabled:opacity-50"
             >
               {miembro.estado === 'congelado' ? 'Descongelar membresía' : 'Congelar membresía'}
             </button>
