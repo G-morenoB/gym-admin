@@ -74,7 +74,7 @@ export default function LoginPage() {
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         
         {/* np */}
-        <h1 className="text-2xl font-bold text-center mb-2">Aquiles Gym</h1>
+        <h1 className="text-2xl font-bold text-center mb-2">App Gym</h1>
         <p className="text-gray-500 text-center mb-6">Inicia sesión para continuar</p>
 
         {/* Formulario */}
